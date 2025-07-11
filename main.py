@@ -1,11 +1,13 @@
-from agents import Agent,Runner,OpenAIChatCompletionsModel,set_tracing_disabled,AsyncOpenAI
+from agents import Agent,Runner,OpenAIChatCompletionsModel,set_tracing_disabled,AsyncOpenAI,enable_verbose_stdout_logging
 from dotenv import load_dotenv
 import os
+import rich
 #---------------------------------------
 
 load_dotenv()
 set_tracing_disabled(disabled=True)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+#enable_verbose_stdout_logging()
 #---------------------------------------
 
 client = AsyncOpenAI(
@@ -49,30 +51,50 @@ dramatic_poetry_agent = Agent(
 triage_agent = Agent(
     name="triage_agent",
     model=OpenAIChatCompletionsModel(model="gemini-2.5-flash", openai_client=client),
-    instructions="Please keep the response under 50 words."
-                "You are a poetry triage specialist. Analyze the user's input and determine whether it belongs to "
-                "lyric, narrative, or dramatic poetry. Then hand off the input to the most appropriate agent.",
+    instructions="You are a poetry triage expert. Based on the content of the poem, decide whether it is lyric, narrative, or dramatic. "
+                "Then HANDOFF the input to the appropriate agent for explanation. Do NOT explain yourself.",
     handoffs=[lyric_poetry_agent,narrative_poetry_agent,dramatic_poetry_agent]
     
 )
 
 #-----------------------------------------
-# Shared input for all agents
-input_text = "Write a poem about a lonely traveler recounting his memories."
+# Shared input 
+input_text = """
+He walks alone on dusty trails,  
+His past a ghost in fading tales.  
+The fire has died in distant lands,  
+Yet memories slip through weathered hands.
+"""
+
+#input_text2 = """
+#In a bustling city square, two strangers meet,
+#Their eyes like stories no words could repeat.
+#Amidst the chaos, a silent bond is formed,
+#A fleeting moment, in time transformed.
+#"""
 
 # Separate Runners for each agent
-lyric_result = Runner.run_sync(starting_agent=lyric_poetry_agent, input=input_text)
-narrative_result = Runner.run_sync(starting_agent=narrative_poetry_agent, input=input_text)
-dramatic_result = Runner.run_sync(starting_agent=dramatic_poetry_agent, input=input_text)
+# lyric_result = Runner.run_sync(starting_agent=lyric_poetry_agent, input=input_text)
+# narrative_result = Runner.run_sync(starting_agent=narrative_poetry_agent, input=input_text)
+# dramatic_result = Runner.run_sync(starting_agent=dramatic_poetry_agent, input=input_text)
 triage_result = Runner.run_sync(starting_agent=triage_agent, input=input_text)
+
+triage_result2 = Runner.run_sync(starting_agent=triage_agent, input=input_text2)
+
 
 #-----------------------------------------
 
-print("🌸❤ LYRIC POETRY AGENT OUTPUT:")
-print(lyric_result.final_output)
-print("\n📜🌹 NARRATIVE POETRY AGENT OUTPUT:")
-print(narrative_result.final_output)
-print("\n🎭👩🏻‍🤝‍🧑🏻 DRAMATIC POETRY AGENT OUTPUT:")
-print(dramatic_result.final_output)
+#print("🌸❤ LYRIC POETRY AGENT OUTPUT:")
+#print(lyric_result.final_output)
+#print("\n📜🌹 NARRATIVE POETRY AGENT OUTPUT:")
+#print(narrative_result.final_output)
+#print("\n🎭👩🏻‍🤝‍🧑🏻 DRAMATIC POETRY AGENT OUTPUT:")
+#print(dramatic_result.final_output)
+
 print("\n🔍🕵️‍♀️ TRIAGE AGENT OUTPUT:")
-print(triage_result.final_output)
+rich.print(triage_result.final_output)
+
+#print("\n🔍🕵️‍♀️ TRIAGE AGENT OUTPUT2:")
+
+#print("\n🔍🕵️‍♀️ TRIAGE AGENT OUTPUT:")
+#rich.print(triage_result2.final_output)
